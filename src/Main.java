@@ -2,7 +2,7 @@ import java.util.Scanner;
 
 // KATA
 // ТЕСТОВАЯ ЗАДАЧА “КАЛЬКУЛЯТОР”
-public class Main {
+class Main {
     // + - * /
     enum actionsEnum {
         EMPTY,
@@ -25,8 +25,8 @@ public class Main {
         IX,
         X
     }
-    // IO
-    public static void main(String[] args) {
+    //
+    public static void main(String[] args) throws Exception {
         // user input
         Scanner readerScanner = new Scanner(System.in);
         // tell user who am I
@@ -35,8 +35,11 @@ public class Main {
         String inString = readerScanner.nextLine();
         // calc input
         String outString = calc(inString);
+        // delete remainder if zero
+        outString = outString.substring(0, outString.length() - 2);
+
         // calc output
-        System.out.println("The result is: " + outString);
+        System.out.println(outString);
     }
 
     // parse to int array
@@ -52,69 +55,139 @@ public class Main {
     }
 
     // calc engine (a + b, a - b, a * b, a / b)
-    public static String calc(String input){
+    public static String calc(String input) throws Exception {
         // Delete white spaces
         input = input.replaceAll(" ", "");
-        Boolean isArabic = true;
-        Boolean isValid = false;
-        actionsEnum currentAction = actionsEnum.EMPTY;
+        // uncaps
+        input = input.toLowerCase();
+
+        Boolean isArabic = false;
+        actionsEnum currentActionEnum = actionsEnum.EMPTY;
 
         StringBuilder numOneString = new StringBuilder();
         StringBuilder numTwoString = new StringBuilder();
 
         // get array from input string
         char[] inputChars = input.toCharArray();
-        // action recognition
-        String operationsString = "+-*/";
+        // action symbols
+        String opString = "+-*/";
+        // operation counter (should be one)
         int opCountInt = 0;
         for (int i = 0; i<input.length(); i++){
-            if (operationsString.contains(String.valueOf(inputChars[i]))){
+            // when the operator found
+            if (opString.contains(String.valueOf(inputChars[i]))){
+                // when an expression starts with operators
                 if (numOneString.toString().equals(""))
-                    return "ERR";
-                if (inputChars[i] == '+'){
-                    currentAction = actionsEnum.SUM;
-                } else if (inputChars[i] == '-'){
-                    currentAction = actionsEnum.SUB;
-                } else if (inputChars[i] == '*') {
-                    currentAction = actionsEnum.MUL;
-                } else currentAction = actionsEnum.DIV;
+                    throw new Exception();
+                // action recognition
+                switch (inputChars[i]){
+                    case '+':
+                        currentActionEnum = actionsEnum.SUM;
+                        i++;
+                        break;
+                    case '-':
+                        currentActionEnum = actionsEnum.SUB;
+                        i++;
+                        break;
+                    case '*':
+                        currentActionEnum = actionsEnum.MUL;
+                        i++;
+                        break;
+                    case '/':
+                        currentActionEnum = actionsEnum.DIV;
+                        i++;
+                        break;
+                    default:
+                        throw new Exception();
+                }
+                // prevent multi action
                 if (opCountInt == 1)
-                    return "ERR";
+                    throw new Exception();
                 opCountInt++;
-                continue;
             }
+
             if (opCountInt == 0)
                 numOneString.append(inputChars[i]);
             else numTwoString.append(inputChars[i]);
         }
 
-        double[] temp = {0,0};
-        // Parse numbers to ints
-        try {
-            temp = parseFunc(numOneString.toString(), numTwoString.toString());
-        } catch (Exception ex){
+        double[] tempDoubles = new double[2];
 
+        // Digits recognition
+        // Roman
+        if (!isArabic) {
+            String tempString = "";
+            for (int i = 0; i < tempDoubles.length; i++){
+                // current active operand
+                if (i == 0){
+                    tempString = numOneString.toString();
+                } else tempString = numTwoString.toString();
+
+                // get normal values
+                switch (tempString){
+                    case "i":
+                        tempDoubles[i] = 1;
+                        break;
+                    case "ii":
+                        tempDoubles[i] = 2;
+                        break;
+                    case "iii":
+                        tempDoubles[i] = 3;
+                        break;
+                    case "iv":
+                        tempDoubles[i] = 4;
+                        break;
+                    case "v":
+                        tempDoubles[i] = 5;
+                        break;
+                    case "vi":
+                        tempDoubles[i] = 6;
+                        break;
+                    case "vii":
+                        tempDoubles[i] = 7;
+                        break;
+                    case "viii":
+                        tempDoubles[i] = 8;
+                        break;
+                    case "ix":
+                        tempDoubles[i] = 9;
+                        break;
+                    case "x":
+                        tempDoubles[i] = 10;
+                        break;
+                }
+            }
         }
-        if (isArabic)
-            temp = parseFunc(numOneString.toString(), numTwoString.toString());
-        else return "ERR";
+
+        // Arabic
+        try {
+            tempDoubles = parseFunc(numOneString.toString(), numTwoString.toString());
+            isArabic = true;
+        } catch (Exception ex) {
+            System.out.println("Exception caught! The message is:\n"+ex.toString());
+        }
 
         double res = 0;
-        switch (currentAction){
+        switch (currentActionEnum){
             case SUM:
-                res = temp[0]+temp[1];
+                res = tempDoubles[0]+tempDoubles[1];
                 break;
             case SUB:
-                res = temp[0]-temp[1];
+                res = tempDoubles[0]-tempDoubles[1];
                 break;
             case MUL:
-                res = temp[0]*temp[1];
+                res = tempDoubles[0]*tempDoubles[1];
                 break;
             case DIV:
-                res = temp[0]/temp[1];
+                res = tempDoubles[0]/tempDoubles[1];
                 break;
+            default:
+                throw new Exception();
         }
+        if (!isArabic){
+            // answer in Roman
 
+        }
 
         return String.valueOf(res);
     }
