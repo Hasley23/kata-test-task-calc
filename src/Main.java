@@ -13,7 +13,6 @@ class Main {
     }
     // digits (N -> zero)
     enum romanEnum {
-        N,
         I,
         II,
         III,
@@ -35,8 +34,6 @@ class Main {
         String inString = readerScanner.nextLine();
         // calc input
         String outString = calc(inString);
-        // delete remainder if zero
-        outString = outString.substring(0, outString.length() - 2);
 
         // calc output
         System.out.println(outString);
@@ -45,12 +42,9 @@ class Main {
     // parse to int array
     static double[] parseFunc(String oneString, String twoString){
         double[] ret = new double[2];
-        try {//numOneString numTwoString
-            ret[0] = Double.parseDouble(oneString);
-            ret[1] = Double.parseDouble(twoString);
-        } catch (Exception ex){
-            System.out.println("Exception caught! The message is:\n"+ex.toString());
-        }
+        //numOneString numTwoString
+        ret[0] = Double.parseDouble(oneString);
+        ret[1] = Double.parseDouble(twoString);
         return ret;
     }
 
@@ -58,17 +52,28 @@ class Main {
     public static String calc(String input) throws Exception {
         // Delete white spaces
         input = input.replaceAll(" ", "");
-        // uncaps
+        // uncaps (for Roman digits)
         input = input.toLowerCase();
 
-        Boolean isArabic = false;
+        // mode bool
+        boolean isArabic = true;
+        // current action
         actionsEnum currentActionEnum = actionsEnum.EMPTY;
 
+        // was strings, but IDE wanted it, maybe better
         StringBuilder numOneString = new StringBuilder();
         StringBuilder numTwoString = new StringBuilder();
 
         // get array from input string
         char[] inputChars = input.toCharArray();
+
+        // Roman digits
+        String romanString = "ivx";
+        // mode detector
+        if(romanString.contains(String.valueOf(inputChars[0])))
+            isArabic = false;
+
+
         // action symbols
         String opString = "+-*/";
         // operation counter (should be one)
@@ -100,7 +105,7 @@ class Main {
                     default:
                         throw new Exception();
                 }
-                // prevent multi action
+                // prevent complex tasks
                 if (opCountInt == 1)
                     throw new Exception();
                 opCountInt++;
@@ -157,14 +162,9 @@ class Main {
                         break;
                 }
             }
-        }
-
-        // Arabic
-        try {
+        } else {
+            // Arabic
             tempDoubles = parseFunc(numOneString.toString(), numTwoString.toString());
-            isArabic = true;
-        } catch (Exception ex) {
-            System.out.println("Exception caught! The message is:\n"+ex.toString());
         }
 
         double res = 0;
@@ -187,6 +187,12 @@ class Main {
         if (!isArabic){
             // answer in Roman
 
+        }
+
+        // remove reminder if zero
+        if (res % 1 == 0){
+            String resString = String.valueOf(res);
+            return resString.substring(0,resString.length() - 2);
         }
 
         return String.valueOf(res);
